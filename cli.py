@@ -212,6 +212,8 @@ def list(ctx, compact):
 @click.argument('version', nargs=1, required=True)
 def install(ctx, plugin, version):
 
+    plugin_directory = os.getcwd()
+    
     """
      1.- Dowload plugin
     """
