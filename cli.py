@@ -212,7 +212,7 @@ def list(ctx, compact):
 @click.argument('version', nargs=1, required=True)
 def install(ctx, plugin, version):
 
-    plugin_directory = os.getcwd()
+    plugin_directory = os.getcwd() + "/.."
     
     """
      1.- Dowload plugin
@@ -264,7 +264,7 @@ def install(ctx, plugin, version):
     """
      2.- Copy file to Sentinella
     """
-    copyfile("{0}".format(file_plugin), "../{0}".format(file_plugin))
+    copyfile("{0}".format(file_plugin), plugin_directory + file_plugin)
 
     """
      3.- Remove file to this directory
@@ -274,15 +274,16 @@ def install(ctx, plugin, version):
     """
      4.- Unzip plugin in Sentinella
     """
-    zip_ref = zipfile.ZipFile("../{0}".format(file_plugin), 'r')
-    zip_ref.extractall("../")
+    zip_ref = zipfile.ZipFile( plugin_directory + file_plugin, 'r')
+    zip_ref.extractall(plugin_directory)
     zip_ref.close()
+    os.remove(plugin_directory+file_plugin)
 
     """
      5.- Copy .conf file plugin to /etc/sentinella/conf.d/
     """
     file_conf = "{0}.conf".format(name_plugin)
-    origin = "../{}/conf/{}".format(name_plugin, file_conf)
+    origin = plugin_directory + name_plugin + '/conf/'
     dest = "/etc/sentinella/conf.d/{}".format(file_conf)
     copyfile(origin, dest)
 
