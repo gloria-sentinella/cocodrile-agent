@@ -205,6 +205,7 @@ def list(ctx, compact):
 @cli.command()
 @click.pass_context
 @click.argument('plugin', nargs=1, required=True)
+@click.argument('version', nargs=1, required=True)
 def install(ctx, plugin):
     """install sentinella plugin"""
     index = get_index()
