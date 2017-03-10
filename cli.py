@@ -241,74 +241,75 @@ def install(ctx, plugin, version):
     except httplib.HTTPException, e:
         print 'HTTPException'
     
-    f = open(file_name, 'wb')
-    meta = u.info()
-    file_size = int(meta.getheaders("Content-Length")[0])
-    print "Downloading: %s Bytes: %s" % (file_name, file_size)
+    if u:
+        f = open(file_name, 'wb')
+        meta = u.info()
+        file_size = int(meta.getheaders("Content-Length")[0])
+        print "Downloading: %s Bytes: %s" % (file_name, file_size)
 
-    file_size_dl = 0
-    block_sz = 8192
-    while True:
-        buffer = u.read(block_sz)
-        if not buffer:
-            break
+        file_size_dl = 0
+        block_sz = 8192
+        while True:
+            buffer = u.read(block_sz)
+            if not buffer:
+                break
 
-        file_size_dl += len(buffer)
-        f.write(buffer)
-        percent = (file_size_dl, file_size_dl * 100. / file_size)
-        status = r"%10d  [%3.2f%%]" % percent
-        status = status + chr(8)*(len(status)+1)
-        print status,
+            file_size_dl += len(buffer)
+            f.write(buffer)
+            percent = (file_size_dl, file_size_dl * 100. / file_size)
+            status = r"%10d  [%3.2f%%]" % percent
+            status = status + chr(8)*(len(status)+1)
+            print status,
 
-    f.close()
+        f.close()
 
-    """
-     2.- Copy file to Sentinella
-    """
-    copyfile("{0}".format(file_plugin), plugin_directory+file_plugin)
+        """
+         2.- Copy file to Sentinella
+        """
+        copyfile("{0}".format(file_plugin), plugin_directory+file_plugin)
 
-    """
-     3.- Remove file to this directory
-    """
-    os.remove(file_plugin)
+        """
+         3.- Remove file to this directory
+        """
+        os.remove(file_plugin)
 
-    """
-     4.- Unzip plugin in Sentinella
-    """
-    zip_ref = zipfile.ZipFile( plugin_directory + file_plugin, 'r')
-    zip_ref.extractall(plugin_directory)
-    zip_ref.close()
-    os.remove(plugin_directory+file_plugin)
+        """
+         4.- Unzip plugin in Sentinella
+        """
+        zip_ref = zipfile.ZipFile( plugin_directory + file_plugin, 'r')
+        zip_ref.extractall(plugin_directory)
+        zip_ref.close()
+        os.remove(plugin_directory+file_plugin)
 
-    """
-     5.- Copy .conf file plugin to /etc/sentinella/conf.d/
-    """
-    file_conf = "{0}.conf".format(name_plugin)
-    origin = plugin_directory + name_plugin + '/conf/' + file_conf
-    dest = "/etc/sentinella/conf.d/{}".format(file_conf)
-    copyfile(origin, dest)
-    
-    print "Plugin " + name_plugin + " ready install into "  + plugin_directory
+        """
+         5.- Copy .conf file plugin to /etc/sentinella/conf.d/
+        """
+        file_conf = "{0}.conf".format(name_plugin)
+        origin = plugin_directory + name_plugin + '/conf/' + file_conf
+        dest = "/etc/sentinella/conf.d/{}".format(file_conf)
+        copyfile(origin, dest)
+        
+        print "Plugin " + name_plugin + " ready install into "  + plugin_directory
 
-@cli.command()
-@click.pass_context
-@click.argument('plugin', nargs=1, required=True)
-def upgrade(ctx, plugin):
-    """upgrade sentinella plugin"""
-    index = get_index()
-    if plugin not in index:
-        click.echo(click.style(
-                   'plugin {} not found!'.format(plugin), fg='red'))
-        return
-    pip_args = ['install']
-    meta = index[plugin]
-    if 'pip_cmd' in meta:
-        plugin = meta['pip_cmd']
-    else:
-        plugin = '{}=={}'.format(plugin, meta['version'])
-    pip_args = ['install', '-U']
-    pip_args.append(plugin)
-    pip.main(pip_args)
+    @cli.command()
+    @click.pass_context
+    @click.argument('plugin', nargs=1, required=True)
+    def upgrade(ctx, plugin):
+        """upgrade sentinella plugin"""
+        index = get_index()
+        if plugin not in index:
+            click.echo(click.style(
+                       'plugin {} not found!'.format(plugin), fg='red'))
+            return
+        pip_args = ['install']
+        meta = index[plugin]
+        if 'pip_cmd' in meta:
+            plugin = meta['pip_cmd']
+        else:
+            plugin = '{}=={}'.format(plugin, meta['version'])
+        pip_args = ['install', '-U']
+        pip_args.append(plugin)
+        pip.main(pip_args)
 
 
 @cli.command()
