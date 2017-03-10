@@ -144,7 +144,6 @@ class Tourbillon(object):
         if 'plugins' in metrics:
             metrics['plugins'] = metrics['plugins']
             metrics.update({'stats':{'agent_version': self.agent_version }})
-            logger.info('Holaaaaa  - push={}%'.format(str(metrics)))
         else:
             metrics['measurements'] = json.dumps(metrics['measurements'])
             metrics['stats']['agent_version'] = self.agent_version
