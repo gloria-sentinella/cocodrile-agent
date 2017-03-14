@@ -5,8 +5,9 @@ import sys
 import os
 import pip
 import urllib2
-from shutil import copyfile
+from shutil import copyfile, copy, Error as shutilError
 import zipfile
+import subprocess
 
 try:
     from urllib.request import urlopen
@@ -211,9 +212,7 @@ def list(ctx, compact):
 @click.argument('plugin', nargs=1, required=True)
 @click.argument('version', nargs=1, required=True)
 def install(ctx, plugin, version):
-
-    plugin_directory = os.path.realpath(__file__)
-    plugin_directory = plugin_directory[:-12]
+    plugin_directory = '/usr/share/python/sentinella/lib/python2.7/site-packages/sentinella/'
     
     """
      1.- Dowload plugin
@@ -266,12 +265,14 @@ def install(ctx, plugin, version):
         """
          2.- Copy file to Sentinella
         """
-        copyfile("{0}".format(file_plugin), plugin_directory+file_plugin)
-
-        """
-         3.- Remove file to this directory
-        """
-        os.remove(file_plugin)
+        try:
+            copy("{0}".format(file_plugin), plugin_directory + file_plugin)
+            """
+            3.- Remove file to this directory
+            """
+            os.remove(file_plugin)
+        except shutilError as e:
+            print "..."
 
         """
          4.- Unzip plugin in Sentinella
@@ -279,16 +280,17 @@ def install(ctx, plugin, version):
         zip_ref = zipfile.ZipFile( plugin_directory + file_plugin, 'r')
         zip_ref.extractall(plugin_directory)
         zip_ref.close()
-        os.remove(plugin_directory+file_plugin)
+        os.remove(plugin_directory + file_plugin)
 
         """
          5.- Copy .conf file plugin to /etc/sentinella/conf.d/
         """
         file_conf = "{0}.conf".format(name_plugin)
-        origin = plugin_directory + name_plugin + '/conf/' + file_conf
+        origin = plugin_directory  + name_plugin + '/conf/' + file_conf
         dest = "/etc/sentinella/conf.d/{}".format(file_conf)
         copyfile(origin, dest)
-        
+        requirements  = "{0}{1}/requirements.txt".format(plugin_directory,name_plugin)
+        pip.main(['install','-r', requirements])
         print "Plugin " + name_plugin + " ready install into "  + plugin_directory
 
     @cli.command()
